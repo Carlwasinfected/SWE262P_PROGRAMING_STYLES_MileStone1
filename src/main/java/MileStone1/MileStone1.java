@@ -44,8 +44,8 @@ public class MileStone1 {
     public static void main(String[] args) {
 
         // Task 1
-        JSONObject jsonObject = getJsonObjectFromXMLFile("./testcase/small3.xml");
-        writeJsonObjectToLocalDisk(jsonObject, "./testcase/output/small3.json");
+        JSONObject jsonObject = getJsonObjectFromXMLFile("./testcase/books.xml");
+        writeJsonObjectToLocalDisk(jsonObject, "./testcase/output/books.json");
 
 
         //
