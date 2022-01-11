@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <catalog>
+   <profile>
+      <name>Carl</name>
+      <age>22</age>
+      <university>UC Irvine</university>
+   </profile>
    <book id="bk101">
       <author>Gambardella, Matthew</author>
       <title>XML Developer's Guide</title>
