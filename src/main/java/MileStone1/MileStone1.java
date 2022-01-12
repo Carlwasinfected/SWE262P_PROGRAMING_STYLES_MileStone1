@@ -87,6 +87,45 @@ public class MileStone1 {
         writeJsonStringToLocalDisk(jsonResultString, targetJsonFilePath);
     }
 
+    // Task 4 read an XML file into a JSON object, and add the prefix "swe262_" to all of its keys.
+    private static void getJsonObjectWithPrefixFromXMLFile(String XMLFilePath, String jsonFilePath) {
+        JSONObject jsonObject = getJsonObjectFromXMLFile(XMLFilePath);
+        Map<String, Object> map = jsonObject.toMap();
+        Map<String, Object> newMap = addPrefixToKeys(map);
+        JSONObject newJsonObject = new JSONObject(newMap);
+        writeJsonObjectToLocalDisk(newJsonObject, jsonFilePath);
+    }
+
+    private static Map<String, Object> addPrefixToKeys(Map<String, Object> map) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Object val = entry.getValue();
+            if (val instanceof HashMap) {
+                addPrefixToKeys((HashMap) val);
+            } else if (val instanceof ArrayList) {
+                for (int i = 0; i < ((ArrayList<?>) val).size(); i++) {
+                    if (((ArrayList<?>) val).get(i) instanceof HashMap) {
+                        addPrefixToKeys((HashMap) ((ArrayList<?>) val).get(i));
+                    }
+                }
+            }
+        }
+        modifyKey(map);
+        return map;
+    }
+
+    private static void modifyKey(Map<String, Object> map) {
+        Map<String, Object> newMap = new HashMap<>();
+        Set<String> keysToRemove = new HashSet<>();
+        for (String key : map.keySet()) {
+            String newKey = "swe262_" + key;
+            Object val = map.get(key);
+            keysToRemove.add(key);
+            newMap.put(newKey, val);
+        }
+        map.keySet().removeAll(keysToRemove);
+        // mapping newMap into map
+        map.putAll(newMap);
+    }
 
     private static void replaceSubJsonWithAnotherJsonObject(String XMLFilePath, String queryString,
                                                             String targetJsonFilePath) {
@@ -179,7 +218,10 @@ public class MileStone1 {
 //        querySubJsonFromXMLFile("./testcase/books.xml",
 //                "/catalog/book/4", "./testcase/output/books_query_result.json");
 
-        // TODO Task 4
+        // Task 4
+        getJsonObjectWithPrefixFromXMLFile("./testcase/books.xml", "./testcase/output/prefix.json");
+        getJsonObjectWithPrefixFromXMLFile("./testcase/small3.xml", "./testcase/output/prefixSmall3.json");
+        getJsonObjectWithPrefixFromXMLFile("./testcase/medium1.xml", "./testcase/output/prefixMedium1.json");
 
         // Task 5
         replaceSubJsonWithAnotherJsonObject("./testcase/books.xml",
