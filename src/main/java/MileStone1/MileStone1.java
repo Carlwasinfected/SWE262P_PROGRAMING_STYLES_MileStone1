@@ -82,12 +82,14 @@ public class MileStone1 {
         }
 
         // write back to disk
-        System.out.println("query result class: " + subJsonObject.getClass());
-        System.out.println("query result: \n" + jsonResultString);
+//        System.out.println("query result class: " + subJsonObject.getClass());
+//        System.out.println("query result: \n" + jsonResultString);
         writeJsonStringToLocalDisk(jsonResultString, targetJsonFilePath);
     }
 
-    // Task 4 read an XML file into a JSON object, and add the prefix "swe262_" to all of its keys.
+    /* Task 4
+     read an XML file into a JSON object, and add the prefix "swe262_" to all of its keys.
+      */
     private static void getJsonObjectWithPrefixFromXMLFile(String XMLFilePath, String jsonFilePath) {
         JSONObject jsonObject = getJsonObjectFromXMLFile(XMLFilePath);
         Map<String, Object> map = jsonObject.toMap();
@@ -127,10 +129,23 @@ public class MileStone1 {
         map.putAll(newMap);
     }
 
+    /* Task5 */
     private static void replaceSubJsonWithAnotherJsonObject(String XMLFilePath, String queryString,
                                                             String targetJsonFilePath) {
         // check if query is valid
+        JSONObject oldJson = getJsonObjectFromXMLFile(XMLFilePath);
+        try {
+            JSONPointer ptr = new JSONPointer(queryString);
+            Object result = ptr.queryFrom(oldJson);
+            if (result == null) {
+                System.out.println("Query Did Not Match Anything. Return Early. ");
+                return;
+            }
+        } catch (JSONPointerException e) {
+            e.printStackTrace();
+        }
 
+        // new json object
         JSONObject newJsonObject = new JSONObject();
         newJsonObject.put("author", "Carl Wang");
         newJsonObject.put("price", 114514);
@@ -139,10 +154,7 @@ public class MileStone1 {
         newJsonObject.put("id", "bk999");
         newJsonObject.put("title", "Leetcode Book");
         newJsonObject.put("publish_date", "2022-1-11");
-        String newResult = newJsonObject.toString(INDENT_SPACE);
-        System.out.println(newResult);
 
-        JSONObject oldJson = getJsonObjectFromXMLFile(XMLFilePath);
         JSONObject newJson = updateJsonObjectWithKeyString(oldJson, queryString, "", newJsonObject);
         writeJsonStringToLocalDisk(newJson.toString(INDENT_SPACE), targetJsonFilePath);
     }
@@ -150,7 +162,6 @@ public class MileStone1 {
 
     private static JSONObject updateJsonObjectWithKeyString(JSONObject currentJson, String key,
                                                             String pathPrefix, JSONObject newObj) {
-        JSONObject json = new JSONObject();
         // get current object's keys
         Iterator iter = currentJson.keys();
         String currentKey;
@@ -162,7 +173,7 @@ public class MileStone1 {
             // check if match the key.
             if (globalKeyPath.equals(key)) {
                 currentJson.put(currentKey, newObj);
-                System.out.println("Match Hit." + globalKeyPath + "  " + currentKey + "  \n" + newObj);
+                // System.out.println("Match Hit." + globalKeyPath + "  " + currentKey + "  \n" + newObj);
                 return currentJson;
             }
 
@@ -182,14 +193,14 @@ public class MileStone1 {
                         // if has reached the end
                         if (i == paths.length - 1) {
                             arr.put(Integer.parseInt(paths[paths.length - 1]), newObj);
-                            System.out.println("Match Hit at line 150.  " + globalKeyPath + "  " + currentKey + "  " + newObj);
+                            // System.out.println("Match Hit at line 150.  " + globalKeyPath + "  " + currentKey + "  " + newObj);
                             return currentJson;
                         } else {
                             if (paths[i].matches("[0-9]+")) {
                                 // update key path with array index
                                 int selectedIndex = Integer.parseInt(paths[i]);
                                 globalKeyPath = globalKeyPath + "/" + paths[i];
-                                System.out.println("** updated global key path: " + globalKeyPath);
+                                // System.out.println("** updated global key path: " + globalKeyPath);
                                 updateJsonObjectWithKeyString(arr.getJSONObject(selectedIndex),
                                         key, globalKeyPath, newObj);
                             } else {
@@ -207,24 +218,46 @@ public class MileStone1 {
     }
 
     public static void main(String[] args) {
+        String xmlFilePath;
+        String queryString;
+
+        // parse arguments
+        if (args.length > 2) {
+            throw new IllegalArgumentException("Only accept zero, one, or two arguments as: <xmlFilePath> <query>");
+        }
+        else if (args.length == 0) {
+            xmlFilePath = "./testcase/books.xml";
+            queryString = "/catalog/book/1";
+        }
+        else if (args.length == 1) {
+            xmlFilePath = args[0];
+            queryString = "/catalog/book/1";
+        }
+        else {
+            xmlFilePath = args[0];
+            queryString = args[1];
+        }
 
         // Task 1
-//        JSONObject jsonObject;
-//        jsonObject = getJsonObjectFromXMLFile("./testcase/books.xml");
-//        writeJsonObjectToLocalDisk(jsonObject, "./testcase/output/books.json");
-//
-//
-//        // Task 2 & Task 3
-//        querySubJsonFromXMLFile("./testcase/books.xml",
-//                "/catalog/book/4", "./testcase/output/books_query_result.json");
+        JSONObject jsonObject;
+        jsonObject = getJsonObjectFromXMLFile(xmlFilePath);
+        writeJsonObjectToLocalDisk(jsonObject, "./testcase/output/books.json");
+        System.out.println("*** Task 1 Done. See output at ./testcase/output/books.json");
+
+        // Task 2 & Task 3
+        querySubJsonFromXMLFile(xmlFilePath,
+                queryString, "./testcase/output/books_query_result.json");
+        System.out.println("*** Task 2, 3 Done. See output at ./testcase/output/books_query_result.json");
 
         // Task 4
         getJsonObjectWithPrefixFromXMLFile("./testcase/books.xml", "./testcase/output/prefix.json");
         getJsonObjectWithPrefixFromXMLFile("./testcase/small3.xml", "./testcase/output/prefixSmall3.json");
         getJsonObjectWithPrefixFromXMLFile("./testcase/medium1.xml", "./testcase/output/prefixMedium1.json");
+        System.out.println("*** Task 4 Done. See output at ./testcase/output/prefix*.json");
 
         // Task 5
-        replaceSubJsonWithAnotherJsonObject("./testcase/books.xml",
-                "/catalog/book/1", "./testcase/output/books_replaced.json");
+        replaceSubJsonWithAnotherJsonObject(xmlFilePath,
+                queryString, "./testcase/output/books_replaced.json");
+        System.out.println("*** Task 5 Done. See output at ./testcase/output/books_replaced.json");
     }
 }
